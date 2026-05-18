@@ -1,0 +1,8 @@
+bin/*
+build/*
+!bin/.gitkeep
+!build/.gitkeep
+*.gcov
+*.gcda
+*.gcno
+.DS_Store

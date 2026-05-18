@@ -1,0 +1,19 @@
+name: C/C++ CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev gcovr
+      - name: Build
+        run: make all
+      - name: Test
+        run: make test
+      - name: Coverage
+        run: make coverage && gcovr --root . --filter src --txt

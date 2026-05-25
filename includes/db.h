@@ -1,33 +1,16 @@
-#ifndef TOUR_DB_H
-#define TOUR_DB_H
-
-#include <sqlite3.h>
-
-#include <functional>
-#include <map>
-#include <string>
-#include <vector>
-
-using Row = std::map<std::string, std::string>;
-
-class Database {
- public:
-  explicit Database(const std::string& path);
-  ~Database();
-
-  Database(const Database&) = delete;
-  Database& operator=(const Database&) = delete;
-
-  void exec(const std::string& sql) const;
-  std::vector<Row> query(const std::string& sql) const;
-  sqlite3* handle() const { return db_; }
-
- private:
-  sqlite3* db_;
-};
-
-void initializeDatabase(Database& db);
-int scalarInt(Database& db, const std::string& sql);
-double scalarDouble(Database& db, const std::string& sql);
-
+#pragma once
+#ifdef __has_include
+#  if __has_include(<sqlite3.h>)
+#    include <sqlite3.h>
+#  else
+#    include "sqlite3_min.h"
+#  endif
+#else
+#  include "sqlite3_min.h"
 #endif
+#include <string>
+
+sqlite3* db_open(const std::string& path);
+void     db_close(sqlite3* db);
+void     db_init(sqlite3* db);
+void     db_seed(sqlite3* db);

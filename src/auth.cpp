@@ -1,33 +1,23 @@
 #include "auth.h"
 
-#include <sstream>
-
-std::string roleToString(Role role) {
-  return role == Role::Admin ? "admin" : "crew";
-}
-
-std::optional<UserSession> authenticate(Database& db, const std::string& username,
-                                        const std::string& password) {
-  std::ostringstream sql;
-  sql << "SELECT id, username, role, COALESCE(crew_member_id, 0) AS crew_member_id "
-      << "FROM users WHERE username = '" << username << "' AND password = '" << password
-      << "' LIMIT 1;";
-  auto rows = db.query(sql.str());
-  if (rows.empty()) {
-    return std::nullopt;
-  }
-
-  const Row& row = rows.front();
-  return UserSession{std::stoi(row.at("id")),
-                     row.at("username"),
-                     row.at("role") == "admin" ? Role::Admin : Role::Crew,
-                     std::stoi(row.at("crew_member_id"))};
-}
-
-bool canManageData(const UserSession& session) {
-  return session.role == Role::Admin;
-}
-
-bool canViewCrewData(const UserSession& session, int crewMemberId) {
-  return session.role == Role::Admin || session.crewMemberId == crewMemberId;
+bool auth_login(sqlite3* db, const std::string& login,
+                const std::string& password, User& user) {
+    const char* sql =
+        "SELECT user_id,login,role,COALESCE(crew_id,0) "
+        "FROM TOURS_USERS WHERE login=? AND password=?;";
+    sqlite3_stmt* s = nullptr;
+    if (sqlite3_prepare_v2(db, sql, -1, &s, nullptr) != SQLITE_OK) return false;
+    sqlite3_bind_text(s, 1, login.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(s, 2, password.c_str(), -1, SQLITE_STATIC);
+    bool ok = false;
+    if (sqlite3_step(s) == SQLITE_ROW) {
+        user.id      = sqlite3_column_int(s, 0);
+        user.login   = reinterpret_cast<const char*>(sqlite3_column_text(s, 1));
+        std::string r = reinterpret_cast<const char*>(sqlite3_column_text(s, 2));
+        user.role    = (r == "admin") ? Role::ADMIN : Role::CREW;
+        user.crew_id = sqlite3_column_int(s, 3);
+        ok = true;
+    }
+    sqlite3_finalize(s);
+    return ok;
 }

@@ -1,25 +1,23 @@
-#ifndef TOUR_AUTH_H
-#define TOUR_AUTH_H
-
-#include "db.h"
-
-#include <optional>
+#pragma once
+#ifdef __has_include
+#  if __has_include(<sqlite3.h>)
+#    include <sqlite3.h>
+#  else
+#    include "sqlite3_min.h"
+#  endif
+#else
+#  include "sqlite3_min.h"
+#endif
 #include <string>
 
-enum class Role { Admin, Crew };
+enum class Role { ADMIN, CREW };
 
-struct UserSession {
-  int userId{};
-  std::string username;
-  Role role;
-  int crewMemberId{};
+struct User {
+    int         id;
+    std::string login;
+    Role        role;
+    int         crew_id;
 };
 
-std::string roleToString(Role role);
-std::optional<UserSession> authenticate(Database& db,
-                                        const std::string& username,
-                                        const std::string& password);
-bool canManageData(const UserSession& session);
-bool canViewCrewData(const UserSession& session, int crewMemberId);
-
-#endif
+bool auth_login(sqlite3* db, const std::string& login,
+                const std::string& password, User& user);

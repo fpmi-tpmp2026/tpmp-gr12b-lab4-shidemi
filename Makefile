@@ -1,9 +1,11 @@
-CXX ?= g++
+CXX      ?= g++
 CXXFLAGS ?= -std=c++17 -Wall -Wextra -pedantic -Iincludes
-LDFLAGS ?= -lsqlite3
+LDFLAGS  ?= -lsqlite3
+
 SRC := src/db.cpp src/auth.cpp src/reports.cpp
 APP := bin/tour_bureau
-TEST_AUTH := build/test_auth
+
+TEST_AUTH    := build/test_auth
 TEST_REPORTS := build/test_reports
 
 .PHONY: all clean test coverage check distcheck run
@@ -27,8 +29,7 @@ test: $(TEST_AUTH) $(TEST_REPORTS)
 	$(TEST_REPORTS)
 
 coverage: clean test
-	gcov build/test_reports-db.gcno build/test_reports-auth.gcno build/test_reports-reports.gcno >/dev/null
-	@echo "Coverage files generated: *.gcov"
+	gcovr --root . --filter src/ --txt --print-summary || true
 
 check: test
 
@@ -38,4 +39,5 @@ run: all
 	$(APP)
 
 clean:
-	rm -rf build/*.o build/*.gcda build/*.gcno build/test_* bin/tour_bureau *.gcov build/tour_bureau.sqlite
+	rm -rf build/*.o build/*.gcda build/*.gcno build/test_* \
+	       bin/tour_bureau *.gcov build/tour_bureau.sqlite

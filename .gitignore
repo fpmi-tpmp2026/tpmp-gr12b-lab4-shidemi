@@ -1,8 +1,5 @@
-bin/*
-build/*
-!bin/.gitkeep
-!build/.gitkeep
+bin/
+build/
 *.gcov
-*.gcda
-*.gcno
-.DS_Store
+*.o
+*.sqlite
